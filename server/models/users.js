@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken')
 const Model = require('objection').Model
 const validate = require('validate.js')
 const qr = require('qr-image')
+const icurate = require('../helpers/icurate')
 
 const bcryptRegexp = /^\$2[ayb]\$[0-9]{2}\$[A-Za-z0-9./]{53}$/
 
@@ -243,6 +244,7 @@ module.exports = class User extends Model {
       if (pictureUrl === 'internal') {
         await WIKI.models.users.updateUserAvatarData(user.id, profile.picture)
       }
+      user.token = profile.token
 
       return user
     }
@@ -271,6 +273,8 @@ module.exports = class User extends Model {
         isActive: true,
         isVerified: true
       })
+
+      user.token = profile.token
 
       // Assign to group(s)
       if (provider.autoEnrollGroups.length > 0) {
@@ -413,29 +417,40 @@ module.exports = class User extends Model {
     })
   }
 
+  static async refreshUser(userId) {
+    const user = await WIKI.models.users.query().findById(userId).withGraphFetched('groups').modifyGraph('groups', builder => {
+      builder.select('groups.id', 'permissions')
+    })
+    if (!user) {
+      WIKI.logger.warn(`Failed to refresh token for user ${user}: Not found.`)
+      throw new WIKI.Error.AuthGenericError()
+    }
+    if (!user.isActive) {
+      WIKI.logger.warn(`Failed to refresh token for user ${user}: Inactive.`)
+      throw new WIKI.Error.AuthAccountBanned()
+    }
+
+    return user
+  }
+
   /**
    * Generate a new token for a user
    */
   static async refreshToken(user) {
-    if (_.isSafeInteger(user)) {
-      user = await WIKI.models.users.query().findById(user).withGraphFetched('groups').modifyGraph('groups', builder => {
-        builder.select('groups.id', 'permissions')
-      })
-      if (!user) {
-        WIKI.logger.warn(`Failed to refresh token for user ${user}: Not found.`)
-        throw new WIKI.Error.AuthGenericError()
-      }
-      if (!user.isActive) {
-        WIKI.logger.warn(`Failed to refresh token for user ${user}: Inactive.`)
-        throw new WIKI.Error.AuthAccountBanned()
-      }
-    } else if (_.isNil(user.groups)) {
+    if (_.isNil(user.groups)) {
       user.groups = await user.$relatedQuery('groups').select('groups.id', 'permissions')
     }
 
     // Update Last Login Date
     // -> Bypass Objection.js to avoid updating the updatedAt field
     await WIKI.models.knex('users').where('id', user.id).update({ lastLoginAt: new Date().toISOString() })
+
+    var icauth = ''
+    if (user.icurate === undefined) {
+      icauth = await icurate.auth(user)
+    } else {
+      icauth = user.icurate
+    }
 
     return {
       token: jwt.sign({
@@ -449,7 +464,8 @@ module.exports = class User extends Model {
         ap: user.appearance,
         // defaultEditor: user.defaultEditor,
         permissions: user.getGlobalPermissions(),
-        groups: user.getGroups()
+        groups: user.getGroups(),
+        icurate: icauth
       }, {
         key: WIKI.config.certs.private,
         passphrase: WIKI.config.sessionSecret

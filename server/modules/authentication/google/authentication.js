@@ -21,7 +21,8 @@ module.exports = {
             providerKey: req.params.strategy,
             profile: {
               ...profile,
-              picture: _.get(profile, 'photos[0].value', '')
+              picture: _.get(profile, 'photos[0].value', ''),
+              token: accessToken
             }
           })
           cb(null, user)

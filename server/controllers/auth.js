@@ -140,7 +140,9 @@ router.get('/verify/:token', bruteforce.prevent, async (req, res, next) => {
     if (WIKI.config.auth.enforce2FA) {
       res.redirect('/login')
     } else {
-      const result = await WIKI.models.users.refreshToken(usr)
+      const userReloaded = await WIKI.models.users.refreshUser(usr.id)
+      userReloaded.icurate = req.user.icurate
+      const result = await WIKI.models.users.refreshToken(userReloaded)
       res.cookie('jwt', result.token, { expires: moment().add(1, 'years').toDate() })
       res.redirect('/')
     }

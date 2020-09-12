@@ -51,6 +51,8 @@ module.exports = {
      */
     async search (obj, args, context) {
       if (WIKI.data.searchEngine) {
+        args.user = context.req.user
+
         const resp = await WIKI.data.searchEngine.query(args.query, args)
         return {
           ...resp,

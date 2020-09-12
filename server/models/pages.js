@@ -440,7 +440,7 @@ module.exports = class Page extends Model {
     // -> Update Search Index
     const pageContents = await WIKI.models.pages.query().findById(page.id).select('render')
     page.safeContent = WIKI.models.pages.cleanHTML(pageContents.render)
-    await WIKI.data.searchEngine.updated(page)
+    await WIKI.data.searchEngine.updated(page, opts.user.icurate.c)
 
     // -> Update on Storage
     if (!opts.skipStorage) {

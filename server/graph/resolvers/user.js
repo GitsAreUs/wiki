@@ -200,7 +200,9 @@ module.exports = {
           appearance: args.appearance
         })
 
-        const newToken = await WIKI.models.users.refreshToken(usr.id)
+        const userReloaded = await WIKI.models.users.refreshUser(usr.id)
+        userReloaded.icurate = context.req.user.icurate
+        const newToken = await WIKI.models.users.refreshToken(userReloaded)
 
         return {
           responseResult: graphHelper.generateSuccess('User profile updated successfully'),
@@ -236,7 +238,9 @@ module.exports = {
           newPassword: args.new
         })
 
-        const newToken = await WIKI.models.users.refreshToken(usr)
+        const userReloaded = await WIKI.models.users.refreshUser(usr.id)
+        userReloaded.icurate = context.req.user.icurate
+        const newToken = await WIKI.models.users.refreshToken(userReloaded)
 
         return {
           responseResult: graphHelper.generateSuccess('Password changed successfully'),
