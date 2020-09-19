@@ -111,7 +111,7 @@ module.exports = {
   },
   registerJob(opts, data) {
     const job = new Job(opts)
-    job.start(data)
+    job.start(JSON.stringify(data))
     if (job.repeat) {
       this.jobs.push(job)
     }

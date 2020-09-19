@@ -522,7 +522,7 @@ module.exports = {
         if (!page) {
           throw new WIKI.Error.PageNotFound()
         }
-        await WIKI.models.pages.renderPage(page)
+        await WIKI.models.pages.renderPage(page, {d: context.req.user.icurate.d.toString()})
         return {
           responseResult: graphHelper.generateSuccess('Page rendered successfully.')
         }

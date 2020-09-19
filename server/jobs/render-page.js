@@ -3,15 +3,19 @@ const cheerio = require('cheerio')
 
 /* global WIKI */
 
-module.exports = async (pageId) => {
-  WIKI.logger.info(`Rendering page ID ${pageId}...`)
+module.exports = async (args) => {
+  args = JSON.parse(args)
+  const pageId = args.pageId
 
+  WIKI.logger.info(`Rendering page ID ${args.pageId}...`)
   try {
     WIKI.models = require('../core/db').init()
     await WIKI.configSvc.loadFromDb()
     await WIKI.configSvc.applyFlags()
 
     const page = await WIKI.models.pages.getPageFromDb(pageId)
+    page.content = WIKI.models.pages.decrypt(page.content, args.d)
+
     if (!page) {
       throw new Error('Invalid Page Id')
     }

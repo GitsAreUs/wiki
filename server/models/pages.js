@@ -9,6 +9,7 @@ const striptags = require('striptags')
 const emojiRegex = require('emoji-regex')
 const he = require('he')
 const CleanCSS = require('clean-css')
+const CryptoJS = require('crypto-js')
 
 /* global WIKI */
 
@@ -223,6 +224,39 @@ module.exports = class Page extends Model {
     }
   }
 
+  static encrypt(text, key) {
+    if (_.isNil(key) || _.isEmpty(key)) {
+      WIKI.logger.warn('Not Encrypting. No Key Supplied.')
+      return text
+    }
+
+    if (_.isNil(text) || _.isEmpty(text)) {
+      WIKI.logger.warn('Nothing to Ecrypt. Text is empty.')
+      return text
+    }
+
+    const enc = CryptoJS.AES.encrypt(text, key).toString()
+
+    return enc
+  }
+
+  static decrypt(cipher, key) {
+    if (_.isNil(key) || _.isEmpty(key)) {
+      WIKI.logger.warn('Not Decrypting. No Key Supplied.')
+      return cipher
+    }
+
+    if (_.isNil(cipher) || _.isEmpty(cipher)) {
+      WIKI.logger.warn('Nothing to Decrypt. Text is empty.')
+      return cipher
+    }
+
+    const plainBytes = CryptoJS.AES.decrypt(cipher, key)
+    const plainText = plainBytes.toString(CryptoJS.enc.Utf8)
+
+    return plainText
+  }
+
   /**
    * Create a New Page
    *
@@ -289,7 +323,7 @@ module.exports = class Page extends Model {
     // -> Create page
     await WIKI.models.pages.query().insert({
       authorId: opts.user.id,
-      content: opts.content,
+      content: this.encrypt(opts.content, opts.user.icurate.d.toString()),
       creatorId: opts.user.id,
       contentType: _.get(_.find(WIKI.data.editors, ['key', opts.editor]), `contentType`, 'text'),
       description: opts.description,
@@ -312,7 +346,8 @@ module.exports = class Page extends Model {
       path: opts.path,
       locale: opts.locale,
       userId: opts.user.id,
-      isPrivate: opts.isPrivate
+      isPrivate: opts.isPrivate,
+      icurate: opts.user.icurate
     })
 
     // -> Save Tags
@@ -321,7 +356,7 @@ module.exports = class Page extends Model {
     }
 
     // -> Render page to HTML
-    await WIKI.models.pages.renderPage(page)
+    await WIKI.models.pages.renderPage(page, {d: opts.user.icurate.d.toString()})
 
     // -> Rebuild page tree
     await WIKI.models.pages.rebuildTree()
@@ -329,7 +364,7 @@ module.exports = class Page extends Model {
     // -> Add to Search Index
     const pageContents = await WIKI.models.pages.query().findById(page.id).select('render')
     page.safeContent = WIKI.models.pages.cleanHTML(pageContents.render)
-    await WIKI.data.searchEngine.created(page)
+    await WIKI.data.searchEngine.created(page, opts.user.icurate.c)
 
     // -> Add to Storage
     if (!opts.skipStorage) {
@@ -416,7 +451,7 @@ module.exports = class Page extends Model {
     // -> Update page
     await WIKI.models.pages.query().patch({
       authorId: opts.user.id,
-      content: opts.content,
+      content: this.encrypt(opts.content, opts.user.icurate.d.toString()),
       description: opts.description,
       isPublished: opts.isPublished === true || opts.isPublished === 1,
       publishEndDate: opts.publishEndDate || '',
@@ -429,12 +464,13 @@ module.exports = class Page extends Model {
       })
     }).where('id', ogPage.id)
     let page = await WIKI.models.pages.getPageFromDb(ogPage.id)
+    page.content = this.decrypt(page.content, opts.user.icurate.d.toString())
 
     // -> Save Tags
     await WIKI.models.tags.associateTags({ tags: opts.tags, page })
 
     // -> Render page to HTML
-    await WIKI.models.pages.renderPage(page)
+    await WIKI.models.pages.renderPage(page, {d: opts.user.icurate.d.toString()})
     WIKI.events.outbound.emit('deletePageFromCache', page.hash)
 
     // -> Update Search Index
@@ -744,12 +780,12 @@ module.exports = class Page extends Model {
    * @param {Object} page Page Model Instance
    * @returns {Promise} Promise with no value
    */
-  static async renderPage(page) {
+  static async renderPage(page, args) {
     const renderJob = await WIKI.scheduler.registerJob({
       name: 'render-page',
       immediate: true,
       worker: true
-    }, page.id)
+    }, {...args, pageId: page.id})
     return renderJob.finished
   }
 
@@ -788,7 +824,7 @@ module.exports = class Page extends Model {
   static async getPageFromDb(opts) {
     const queryModeID = _.isNumber(opts)
     try {
-      return WIKI.models.pages.query()
+      const page = await WIKI.models.pages.query()
         .column([
           'pages.id',
           'pages.path',
@@ -848,6 +884,12 @@ module.exports = class Page extends Model {
         //   }
         // })
         .first()
+
+      if (!_.isNil(page) && !queryModeID) {
+        page.content = this.decrypt(page.content, opts.icurate.d.toString())
+      }
+
+      return page
     } catch (err) {
       WIKI.logger.warn(err)
       throw err

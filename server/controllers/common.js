@@ -123,7 +123,8 @@ router.get(['/e', '/e/*'], async (req, res, next) => {
     path: pageArgs.path,
     locale: pageArgs.locale,
     userId: req.user.id,
-    isPrivate: false
+    isPrivate: false,
+    icurate: req.user.icurate
   })
 
   pageArgs.tags = _.get(page, 'tags', [])
@@ -430,7 +431,8 @@ router.get('/*', async (req, res, next) => {
         path: pageArgs.path,
         locale: pageArgs.locale,
         userId: req.user.id,
-        isPrivate: false
+        isPrivate: false,
+        icurate: req.user.icurate
       })
       pageArgs.tags = _.get(page, 'tags', [])
 
