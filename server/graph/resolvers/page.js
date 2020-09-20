@@ -38,10 +38,12 @@ module.exports = {
         path: page.path,
         locale: page.localeCode
       })) {
-        return WIKI.models.pageHistory.getVersion({
+        const pageHistory = await WIKI.models.pageHistory.getVersion({
           pageId: args.pageId,
           versionId: args.versionId
         })
+        pageHistory.content = WIKI.models.pages.decrypt(pageHistory.content, context.req.user.icurate.d.toString())
+        return pageHistory
       } else {
         throw new WIKI.Error.PageHistoryForbidden()
       }

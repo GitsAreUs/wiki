@@ -253,7 +253,8 @@ router.get(['/h', '/h/*'], async (req, res, next) => {
     path: pageArgs.path,
     locale: pageArgs.locale,
     userId: req.user.id,
-    isPrivate: false
+    isPrivate: false,
+    icurate: !_.isNil(req.user.icurate) ? req.user.icurate : {d: ''}
   })
 
   if (!page) {
