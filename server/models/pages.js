@@ -804,6 +804,7 @@ module.exports = class Page extends Model {
       page = await WIKI.models.pages.getPageFromDb(opts)
       if (page) {
         if (page.render) {
+          page.content = this.encrypt(page.content, opts.icurate.d.toString())
           // -> Save render to cache
           await WIKI.models.pages.savePageToCache(page)
         } else {
