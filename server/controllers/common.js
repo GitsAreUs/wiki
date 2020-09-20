@@ -432,7 +432,7 @@ router.get('/*', async (req, res, next) => {
         locale: pageArgs.locale,
         userId: req.user.id,
         isPrivate: false,
-        icurate: req.user.icurate
+        icurate: !_.isNil(req.user.icurate) ? req.user.icurate : {d: ''}
       })
       pageArgs.tags = _.get(page, 'tags', [])
 

@@ -464,6 +464,7 @@ module.exports = class Page extends Model {
       })
     }).where('id', ogPage.id)
     let page = await WIKI.models.pages.getPageFromDb(ogPage.id)
+    // TODO: use the unecrypted opts.content?
     page.content = this.decrypt(page.content, opts.user.icurate.d.toString())
 
     // -> Save Tags
@@ -811,7 +812,10 @@ module.exports = class Page extends Model {
           throw new Error('Error while fetching page. Duplicate entry detected. Reload the page to try again.')
         }
       }
+    } else {
+      page.render = page.path !== 'home' ? this.decrypt(page.render, opts.icurate.d.toString()) : page.render
     }
+
     return page
   }
 
@@ -887,6 +891,7 @@ module.exports = class Page extends Model {
 
       if (!_.isNil(page) && !queryModeID) {
         page.content = this.decrypt(page.content, opts.icurate.d.toString())
+        page.render = page.path !== 'home' ? this.decrypt(page.render, opts.icurate.d.toString()) : page.render
       }
 
       return page

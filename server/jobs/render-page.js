@@ -73,10 +73,13 @@ module.exports = async (args) => {
       })
     })
 
+    // Home page render should be available to all users
+    const encOutput = page.path !== 'home' ? WIKI.models.pages.encrypt(output, args.d) : output
+
     // Save to DB
     await WIKI.models.pages.query()
       .patch({
-        render: output,
+        render: encOutput,
         toc: JSON.stringify(toc.root)
       })
       .where('id', pageId)
@@ -84,7 +87,7 @@ module.exports = async (args) => {
     // Save to cache
     await WIKI.models.pages.savePageToCache({
       ...page,
-      render: output,
+      render: encOutput,
       toc: JSON.stringify(toc.root)
     })
 
