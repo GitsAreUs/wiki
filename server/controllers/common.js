@@ -338,7 +338,8 @@ router.get(['/s', '/s/*'], async (req, res, next) => {
     path: pageArgs.path,
     locale: pageArgs.locale,
     userId: req.user.id,
-    isPrivate: false
+    isPrivate: false,
+    icurate: !_.isNil(req.user.icurate) ? req.user.icurate : {d: ''}
   })
 
   pageArgs.tags = _.get(page, 'tags', [])
@@ -368,6 +369,7 @@ router.get(['/s', '/s/*'], async (req, res, next) => {
   if (page) {
     if (versionId > 0) {
       const pageVersion = await WIKI.models.pageHistory.getVersion({ pageId: page.id, versionId })
+      pageVersion.content = WIKI.models.pages.decrypt(pageVersion.content, req.user.icurate.d.toString())
       _.set(res.locals, 'pageMeta.title', pageVersion.title)
       _.set(res.locals, 'pageMeta.description', pageVersion.description)
       res.render('source', {
