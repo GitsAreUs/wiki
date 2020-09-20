@@ -223,7 +223,9 @@ router.get(['/e', '/e/*'], async (req, res, next) => {
           _.set(res.locals, 'pageMeta.title', 'Unauthorized')
           return res.render('unauthorized', { action: 'source' })
         }
-        page.content = Buffer.from(pageOriginal.content).toString('base64')
+
+        const content = WIKI.models.pages.decrypt(pageOriginal.content, req.user.icurate.d.toString())
+        page.content = Buffer.from(content).toString('base64')
         page.editorKey = pageOriginal.editorKey
         page.title = pageOriginal.title
         page.description = pageOriginal.description
