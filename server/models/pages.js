@@ -362,8 +362,9 @@ module.exports = class Page extends Model {
     await WIKI.models.pages.rebuildTree()
 
     // -> Add to Search Index
-    const pageContents = await WIKI.models.pages.query().findById(page.id).select('render')
-    page.safeContent = WIKI.models.pages.cleanHTML(pageContents.render)
+    const pageContent = await WIKI.models.pages.query().findById(page.id).select('render')
+    pageContent.render = this.decrypt(pageContent.render, opts.user.icurate.d.toString())
+    page.safeContent = WIKI.models.pages.cleanHTML(pageContent.render)
     await WIKI.data.searchEngine.created(page, opts.user.icurate.c)
 
     // -> Add to Storage
@@ -475,8 +476,9 @@ module.exports = class Page extends Model {
     WIKI.events.outbound.emit('deletePageFromCache', page.hash)
 
     // -> Update Search Index
-    const pageContents = await WIKI.models.pages.query().findById(page.id).select('render')
-    page.safeContent = WIKI.models.pages.cleanHTML(pageContents.render)
+    const pageContent = await WIKI.models.pages.query().findById(page.id).select('render')
+    pageContent.render = this.decrypt(pageContent.render, opts.user.icurate.d.toString())
+    page.safeContent = WIKI.models.pages.cleanHTML(pageContent.render)
     await WIKI.data.searchEngine.updated(page, opts.user.icurate.c)
 
     // -> Update on Storage
@@ -586,7 +588,7 @@ module.exports = class Page extends Model {
       destinationPath: opts.destinationPath,
       destinationLocaleCode: opts.destinationLocale,
       destinationHash
-    })
+    }, opts.user.icurate.c)
 
     // -> Rename in Storage
     if (!opts.skipStorage) {
@@ -665,7 +667,7 @@ module.exports = class Page extends Model {
     await WIKI.models.pages.rebuildTree()
 
     // -> Delete from Search Index
-    await WIKI.data.searchEngine.deleted(page)
+    await WIKI.data.searchEngine.deleted(page, opts.user.icurate.c)
 
     // -> Delete from Storage
     if (!opts.skipStorage) {

@@ -77,5 +77,26 @@ module.exports = {
       console.log('Failed to curate page content.')
       console.log(resp.message())
     }
+  },
+
+  async deletePage(page, c) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Cookie': c
+    }
+
+    const curateContent = {query: `mutation{delete_bookmark(url: "${'wiki://' + page.path}")}`}
+    const resp = await fetch(`http://${host}:${port}/graphql`, {
+      method: 'post',
+      headers: headers,
+      body: JSON.stringify(curateContent)
+    })
+
+    if (resp.status === 200) {
+      console.log('Page content successfully deleted.')
+    } else {
+      console.log('Failed to delete page.')
+      console.log(resp.message())
+    }
   }
 }

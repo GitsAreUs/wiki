@@ -29,8 +29,8 @@ module.exports = {
    *
    * @param {Object} page Page to create
    */
-  async created(page) {
-    // not used
+  async created(page, c) {
+    icurate.curatePage(page, c)
   },
   /**
    * UPDATE
@@ -45,21 +45,24 @@ module.exports = {
    *
    * @param {Object} page Page to delete
    */
-  async deleted(page) {
-    // not used
+  async deleted(page, c) {
+    icurate.deletePage(page, c)
   },
   /**
    * RENAME
    *
    * @param {Object} page Page to rename
    */
-  async renamed(page) {
-    // not used
+  async renamed(page, c) {
+    icurate.deletePage(page, c)
+    page.path = page.destinationPath
+    icurate.createPage(page, c)
   },
   /**
    * REBUILD INDEX
    */
   async rebuild() {
+    console.log('Rebuilding index')
     // not used
   }
 }
