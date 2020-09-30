@@ -8,6 +8,7 @@ const Model = require('objection').Model
 const validate = require('validate.js')
 const qr = require('qr-image')
 const icurate = require('../helpers/icurate')
+const { nanoid } = require('nanoid')
 
 const bcryptRegexp = /^\$2[ayb]\$[0-9]{2}\$[A-Za-z0-9./]{53}$/
 
@@ -565,6 +566,15 @@ module.exports = class User extends Model {
     })
   }
 
+  static userRootDir(email) {
+    var pathSafeName = email.substring(0, email.indexOf('@'))
+    pathSafeName = pathSafeName.replace('.', '-')
+    pathSafeName = pathSafeName.replace('/', '-')
+    pathSafeName = pathSafeName.replace('\\', '-')
+
+    return pathSafeName
+  }
+
   /**
    * Create a new user
    *
@@ -632,6 +642,17 @@ module.exports = class User extends Model {
     if (validation && validation.length > 0) {
       throw new WIKI.Error.InputInvalid(validation[0])
     }
+
+    const pathSafeName = WIKI.models.users.userRootDir(email)
+    const pageRules = _.set(WIKI.data.groups.autoGroupPageRules, '[1].path', pathSafeName)
+    const defaultGroup = await WIKI.models.groups.query().insertAndFetch({
+      name: pathSafeName,
+      permissions: JSON.stringify(WIKI.data.groups.autoGroupPermissions),
+      pageRules: JSON.stringify(pageRules),
+      isSystem: false
+    })
+
+    groups.push(defaultGroup.id)
 
     // Check if email already exists
     const usr = await WIKI.models.users.query().findOne({ email, providerKey })
