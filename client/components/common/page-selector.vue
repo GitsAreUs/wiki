@@ -85,7 +85,7 @@
           ref='pathIpt'
           solo
           hide-details
-          prefix='/'
+          :prefix='userRootDir'
           v-model='currentPath'
           flat
           clearable
@@ -102,6 +102,7 @@
 <script>
 import _ from 'lodash'
 import gql from 'graphql-tag'
+import { get } from 'vuex-pathify'
 
 const localeSegmentRegex = /^[A-Z]{2}(-[A-Z]{2})?$/i
 
@@ -132,6 +133,10 @@ export default {
     mustExist: {
       type: Boolean,
       default: false
+    },
+    email: {
+      type: String,
+      default: get('user/email')
     }
   },
   data() {
@@ -202,6 +207,14 @@ export default {
       } else {
         return true
       }
+    },
+    userRootDir () {
+      var pathSafeName = this.email.substring(0, this.email.indexOf('@'))
+      pathSafeName = pathSafeName.replaceAll('.', '-')
+      pathSafeName = pathSafeName.replaceAll('/', '-')
+      pathSafeName = pathSafeName.replaceAll('\\', '-')
+
+      return `/${pathSafeName}/`
     }
   },
   watch: {

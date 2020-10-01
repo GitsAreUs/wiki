@@ -16,7 +16,7 @@
         .subheading {{$t('common:header.searchNoResult')}}
       template(v-if='results && results.length > 0')
         v-subheader.white--text {{$t('common:header.searchResultsCount', { total: response.totalHits })}}
-        v-list.search-results-items.radius-7.py-0(two-line, dense)
+        v-list.search-results-items.radius-7.py-0(three-line, dense)
           template(v-for='(item, idx) of results')
             v-list-item(@click='goToPage(item)', :key='item.id', :class='idx === cursor ? `highlighted` : ``')
               v-list-item-avatar(tile)
@@ -135,7 +135,12 @@ export default {
       this.search = term
     },
     goToPage(item) {
-      window.location.assign(`/${item.locale}/${item.path}`)
+      if (item.path.startsWith('http') ||
+           item.path.startWith('https')) {
+        window.open(item.path, '_blank').focus()
+      } else {
+        window.location.assign(`/${item.locale}/${item.path}`)
+      }
     }
   },
   apollo: {
