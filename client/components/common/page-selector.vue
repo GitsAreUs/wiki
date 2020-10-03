@@ -214,7 +214,7 @@ export default {
       pathSafeName = pathSafeName.replaceAll('/', '-')
       pathSafeName = pathSafeName.replaceAll('\\', '-')
 
-      return `/${pathSafeName}/`
+      return `${pathSafeName}/`
     }
   },
   watch: {
@@ -280,7 +280,7 @@ export default {
     open() {
       const exit = this.openHandler({
         locale: this.currentLocale,
-        path: this.currentPath,
+        path: this.userRootDir + this.currentPath,
         id: (this.mustExist && this.currentPage) ? this.currentPage.pageId : 0
       })
       if (exit !== false) {

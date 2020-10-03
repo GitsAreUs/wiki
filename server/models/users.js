@@ -277,10 +277,19 @@ module.exports = class User extends Model {
 
       user.token = profile.token
 
+      const pathSafeName = WIKI.models.users.userRootDir(primaryEmail)
+      const pageRules = _.set(WIKI.data.groups.autoGroupPageRules, '[1].path', pathSafeName)
+      const defaultGroup = await WIKI.models.groups.query().insertAndFetch({
+        name: pathSafeName,
+        permissions: JSON.stringify(WIKI.data.groups.autoGroupPermissions),
+        pageRules: JSON.stringify(pageRules),
+        isSystem: false
+      })
+
+      const defaultGroupIds = _.concat(provider.autoEnrollGroups, [defaultGroup.id])
+
       // Assign to group(s)
-      if (provider.autoEnrollGroups.length > 0) {
-        await user.$relatedQuery('groups').relate(provider.autoEnrollGroups)
-      }
+      await user.$relatedQuery('groups').relate(defaultGroupIds)
 
       if (pictureUrl === 'internal') {
         await WIKI.models.users.updateUserAvatarData(user.id, profile.picture)
@@ -642,17 +651,6 @@ module.exports = class User extends Model {
     if (validation && validation.length > 0) {
       throw new WIKI.Error.InputInvalid(validation[0])
     }
-
-    const pathSafeName = WIKI.models.users.userRootDir(email)
-    const pageRules = _.set(WIKI.data.groups.autoGroupPageRules, '[1].path', pathSafeName)
-    const defaultGroup = await WIKI.models.groups.query().insertAndFetch({
-      name: pathSafeName,
-      permissions: JSON.stringify(WIKI.data.groups.autoGroupPermissions),
-      pageRules: JSON.stringify(pageRules),
-      isSystem: false
-    })
-
-    groups.push(defaultGroup.id)
 
     // Check if email already exists
     const usr = await WIKI.models.users.query().findOne({ email, providerKey })

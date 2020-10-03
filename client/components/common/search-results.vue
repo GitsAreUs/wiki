@@ -136,7 +136,7 @@ export default {
     },
     goToPage(item) {
       if (item.path.startsWith('http') ||
-           item.path.startWith('https')) {
+           item.path.startsWith('https')) {
         window.open(item.path, '_blank').focus()
       } else {
         window.location.assign(`/${item.locale}/${item.path}`)
