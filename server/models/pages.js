@@ -477,7 +477,9 @@ module.exports = class Page extends Model {
 
     // -> Update Search Index
     const pageContent = await WIKI.models.pages.query().findById(page.id).select('render')
-    pageContent.render = this.decrypt(pageContent.render, opts.user.icurate.d.toString())
+    if (page.path !== 'home') { // render of the wiki home page is not encrypted.
+      pageContent.render = this.decrypt(pageContent.render, opts.user.icurate.d.toString())
+    }
     page.safeContent = WIKI.models.pages.cleanHTML(pageContent.render)
     await WIKI.data.searchEngine.updated(page, opts.user.icurate.c)
 
@@ -804,16 +806,19 @@ module.exports = class Page extends Model {
     if (!page) {
       // -> Get from DB
       page = await WIKI.models.pages.getPageFromDb(opts)
-      if (page) {
-        if (page.render) {
-          page.content = this.encrypt(page.content, opts.icurate.d.toString())
-          // -> Save render to cache
-          await WIKI.models.pages.savePageToCache(page)
+      if (page && page.render) {
+        let render = ''
+        if (page.path !== 'home') {
+          render = this.encrypt(page.render, opts.icurate.d.toString())
         } else {
-          // -> No render? Possible duplicate issue
-          /* TODO: Detect duplicate and delete */
-          throw new Error('Error while fetching page. Duplicate entry detected. Reload the page to try again.')
+          render = page.render
         }
+        // -> Save render to cache
+        await WIKI.models.pages.savePageToCache({...page, render})
+      } else {
+        // -> No render? Possible duplicate issue
+        /* TODO: Detect duplicate and delete */
+        throw new Error('Error while fetching page. Duplicate entry detected. Reload the page to try again.')
       }
     } else {
       page.render = page.path !== 'home' ? this.decrypt(page.render, opts.icurate.d.toString()) : page.render

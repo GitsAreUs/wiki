@@ -24,8 +24,8 @@ module.exports = {
 
     let d = JSON.parse(jsonResp).data.user_auth
     d = JSON.parse(d)
-    d = Buffer.from(d.d, 'base64')
-    const c = resp.headers.raw()['set-cookie'] // [0].split(';')[0].split('=')[1]
+    d = d.d
+    const c = resp.headers.raw()['set-cookie']
 
     return {d: d, c: JSON.stringify(c)}
   },
