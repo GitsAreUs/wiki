@@ -47,3 +47,9 @@ test-results/
 
 # Localization Resources
 /server/locales/**/*.yml
+
+# ignore local stuff
+doc/
+package-lock.json
+pug_test/
+repl.js

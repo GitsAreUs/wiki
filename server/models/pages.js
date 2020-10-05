@@ -808,7 +808,7 @@ module.exports = class Page extends Model {
       page = await WIKI.models.pages.getPageFromDb(opts)
       if (page && page.render) {
         let render = ''
-        if (page.path !== 'home') {
+        if (page.path !== 'home' && page.authorId === opts.userId) {
           render = this.encrypt(page.render, opts.icurate.d.toString())
         } else {
           render = page.render
@@ -897,7 +897,7 @@ module.exports = class Page extends Model {
         // })
         .first()
 
-      if (!_.isNil(page) && !queryModeID) {
+      if (!_.isNil(page) && !queryModeID && (page.authorId === opts.userId)) {
         page.content = this.decrypt(page.content, opts.icurate.d.toString())
         page.render = page.path !== 'home' ? this.decrypt(page.render, opts.icurate.d.toString()) : page.render
       }

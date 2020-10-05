@@ -233,6 +233,11 @@ module.exports = {
       return true
     }
 
+    // let through if the path is a web url.
+    if (_.startsWith(page.path, 'https') || _.startsWith(page.path, 'http')) {
+      return true
+    }
+
     // Check Page Rules
     if (user.groups) {
       let checkState = {
