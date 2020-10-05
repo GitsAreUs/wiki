@@ -291,6 +291,10 @@ module.exports = class User extends Model {
       // Assign to group(s)
       await user.$relatedQuery('groups').relate(defaultGroupIds)
 
+      // wiki caches all groups in WIKI.auth.groups. One use of this cache is to check page access.
+      // This caching needs to be removed.
+      WIKI.auth.groups[defaultGroup.id] = defaultGroup
+
       if (pictureUrl === 'internal') {
         await WIKI.models.users.updateUserAvatarData(user.id, profile.picture)
       }
