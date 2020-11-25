@@ -292,7 +292,7 @@ module.exports = class User extends Model {
       await user.$relatedQuery('groups').relate(defaultGroupIds)
 
       // wiki caches all groups in WIKI.auth.groups. One use of this cache is to check page access.
-      // This caching needs to be removed.
+      // TODO: This caching needs to be removed.
       WIKI.auth.groups[defaultGroup.id] = defaultGroup
 
       if (pictureUrl === 'internal') {
@@ -460,7 +460,7 @@ module.exports = class User extends Model {
     await WIKI.models.knex('users').where('id', user.id).update({ lastLoginAt: new Date().toISOString() })
 
     var icauth = ''
-    if (user.icurate === undefined) {
+    if (user.providerKey !== 'local' && user.icurate === undefined) {
       icauth = await icurate.auth(user)
     } else {
       icauth = user.icurate
