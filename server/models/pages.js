@@ -806,19 +806,21 @@ module.exports = class Page extends Model {
     if (!page) {
       // -> Get from DB
       page = await WIKI.models.pages.getPageFromDb(opts)
-      if (page && page.render) {
-        let render = ''
-        if (page.path !== 'home' && page.authorId === opts.userId) {
-          render = this.encrypt(page.render, opts.icurate.d.toString())
+      if (page) {
+        if (page.render) {
+          let render = ''
+          if (page.path !== 'home' && page.authorId === opts.userId) {
+            render = this.encrypt(page.render, opts.icurate.d.toString())
+          } else {
+            render = page.render
+          }
+          // -> Save render to cache
+          await WIKI.models.pages.savePageToCache({...page, render})
         } else {
-          render = page.render
+          // -> No render? Possible duplicate issue
+          /* TODO: Detect duplicate and delete */
+          throw new Error('Error while fetching page. Duplicate entry detected. Reload the page to try again.')
         }
-        // -> Save render to cache
-        await WIKI.models.pages.savePageToCache({...page, render})
-      } else {
-        // -> No render? Possible duplicate issue
-        /* TODO: Detect duplicate and delete */
-        throw new Error('Error while fetching page. Duplicate entry detected. Reload the page to try again.')
       }
     } else {
       page.render = page.path !== 'home' ? this.decrypt(page.render, opts.icurate.d.toString()) : page.render
