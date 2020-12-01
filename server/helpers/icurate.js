@@ -4,7 +4,7 @@ const fetch = require('node-fetch')
 const host = 'localhost'
 const port = 9999
 
-/* Global Wiki */
+/* global WIKI */
 
 module.exports = {
   async auth(user) {
