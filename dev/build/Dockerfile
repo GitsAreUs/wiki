@@ -3,7 +3,7 @@
 # ====================
 FROM node:14-alpine AS assets
 
-RUN apk add yarn g++ make python --no-cache
+RUN apk add yarn emacs g++ make python --no-cache
 
 WORKDIR /wiki
 
