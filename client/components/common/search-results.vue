@@ -135,6 +135,11 @@ export default {
       this.search = term
     },
     goToPage(item) {
+      if (!item) {
+        console.log('no item selected!')
+        return
+      }
+
       if (item.path.startsWith('http') ||
            item.path.startsWith('https')) {
         window.open(item.path, '_blank').focus()
