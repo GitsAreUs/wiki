@@ -110,7 +110,7 @@ export default {
     },
     isPublished: {
       type: Boolean,
-      default: true
+      default: false
     },
     scriptCss: {
       type: String,
@@ -446,7 +446,7 @@ export default {
               description: this.$store.get('page/description'),
               editor: this.$store.get('editor/editorKey'),
               locale: this.$store.get('page/locale'),
-              isPrivate: false,
+              isPrivate: true,
               isPublished: this.$store.get('page/isPublished'),
               path: this.$store.get('page/path'),
               publishEndDate: this.$store.get('page/publishEndDate') || '',
