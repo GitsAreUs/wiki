@@ -54,3 +54,4 @@ package-lock.json
 pug_test/
 repl.js
 env_file
+.DS_Store

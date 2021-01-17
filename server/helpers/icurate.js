@@ -33,8 +33,10 @@ module.exports = {
   async query(q, c) {
     q = q !== '**' ? q : ''
 
+    const t1 = Date.now()
+
     // TODO: Config item
-    const response = await fetch(encodeURI(`http://${host}:${port}/graphql?query={match_url(search:"${q}"){id url title summary}}`), {
+    const response = await fetch(encodeURI(`http://${host}:${port}/graphql?query={match_url(search:"${q}"){id url title summary sha}}`), {
       method: 'get',
       headers: {
         'Cookie': c
@@ -48,7 +50,7 @@ module.exports = {
     var results = []
 
     _.forEach(bmrks.data.match_url, bmrk => results.push({
-      id: bmrk.id,
+      id: bmrk.sha,
       title: bmrk.title,
       description: bmrk.summary !== null ? bmrk.summary : 'No summary available.',
       path: bmrk.url,

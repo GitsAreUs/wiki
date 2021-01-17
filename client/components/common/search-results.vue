@@ -26,7 +26,7 @@
                 v-list-item-subtitle.caption(v-text='item.description')
                 .caption.grey--text(v-text='item.path')
               v-list-item-action
-                v-chip(label, outlined) {{item.locale.toUpperCase()}}
+                v-chip(label, outlined, @click.stop='goToCache(item)') cache
             v-divider(v-if='idx < results.length - 1')
         v-pagination.mt-3(
           v-if='paginationLength > 1'
@@ -146,6 +146,9 @@ export default {
       } else {
         window.location.assign(`/${item.locale}/${item.path}`)
       }
+    },
+    goToCache(item) {
+      console.log('Opening Cached Page!!' + item.id)
     }
   },
   apollo: {
