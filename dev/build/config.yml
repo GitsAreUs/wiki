@@ -17,3 +17,4 @@ ssl:
   subscriberEmail: $(LETSENCRYPT_EMAIL)
 logLevel: info
 ha: $(HA_ACTIVE)
+icurateGQL: $(ICURATE_GQL)

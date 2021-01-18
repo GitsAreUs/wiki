@@ -255,6 +255,7 @@ type PageSearchResult {
   title: String!
   description: String!
   path: String!
+  sha: String!
   locale: String!
 }
 

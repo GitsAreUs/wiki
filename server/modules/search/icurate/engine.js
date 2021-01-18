@@ -23,7 +23,6 @@ module.exports = {
    */
   async query(q, opts) {
     const results = await icurate.query(q, opts.user.icurate.c)
-    WIKI.logger.(`Searcing icurate....`)
     return {results: results, suggestions: [], totalHits: results.length}
   },
   /**

@@ -148,7 +148,8 @@ export default {
       }
     },
     goToCache(item) {
-      console.log('Opening Cached Page!!' + item.id)
+      const cacheURL = 'https://icurate.gitsareus.com/cache/' + encodeURIComponent(item.sha)
+      window.open(cacheURL, '_blank').focus()
     }
   },
   apollo: {

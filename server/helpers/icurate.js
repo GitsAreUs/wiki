@@ -1,8 +1,7 @@
 const _ = require('lodash')
 const fetch = require('node-fetch')
 
-const host = 'localhost'
-const port = 9999
+const icurate = WIKI.config.icurateGQL
 
 /* global WIKI */
 
@@ -14,7 +13,7 @@ module.exports = {
     }
 
     const authReq = {query: `query{user_auth(email: "${user.email}")}`}
-    const resp = await fetch(`http://${host}:${port}/graphql`, {
+    const resp = await fetch(icurate, {
       method: 'post',
       headers: headers,
       body: JSON.stringify(authReq)
@@ -36,7 +35,7 @@ module.exports = {
     const t1 = Date.now()
 
     // TODO: Config item
-    const response = await fetch(encodeURI(`http://${host}:${port}/graphql?query={match_url(search:"${q}"){id url title summary sha}}`), {
+    const response = await fetch(encodeURI(icurate + `?query={match_url(search:"${q}"){id url title summary sha}}`), {
       method: 'get',
       headers: {
         'Cookie': c
@@ -50,10 +49,11 @@ module.exports = {
     var results = []
 
     _.forEach(bmrks.data.match_url, bmrk => results.push({
-      id: bmrk.sha,
+      id: bmrk.id,
       title: bmrk.title,
       description: bmrk.summary !== null ? bmrk.summary : 'No summary available.',
       path: bmrk.url,
+      sha: bmrk.sha,
       locale: 'en'
     }))
 
@@ -67,7 +67,7 @@ module.exports = {
     }
 
     const curateContent = {query: `mutation{curate_content(url: "${'wiki://' + page.path}", title: "${page.title}", tags: "${page.tags}", summary: "${page.description}", content: "${page.safeContent}")}`}
-    const resp = await fetch(`http://${host}:${port}/graphql`, {
+    const resp = await fetch(icurate, {
       method: 'post',
       headers: headers,
       body: JSON.stringify(curateContent)
@@ -88,7 +88,7 @@ module.exports = {
     }
 
     const curateContent = {query: `mutation{delete_bookmark(url: "${'wiki://' + page.path}")}`}
-    const resp = await fetch(`http://${host}:${port}/graphql`, {
+    const resp = await fetch(icurate, {
       method: 'post',
       headers: headers,
       body: JSON.stringify(curateContent)
